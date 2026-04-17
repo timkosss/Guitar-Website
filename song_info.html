@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<!-- This HTML file displays the details of a specific song, allowing users to view and edit notes. -->
+<html>
+<head>
+    <!-- Sets the title of the page to "Song Details" -->
+    <title>Song Details</title>
+    <!-- Links to the external CSS file for styling the song details page -->
+    <link rel="stylesheet" href="song.css">
+</head>
+<body>
+
+<!-- Displays the title of the selected song -->
+<h1 id="songTitle"></h1>
+
+<div id="songStatus">
+    <button id="justStarted">Just Started</button>
+    <button id="knowTheChords">Know The Chords</button> 
+    <button id="canPlay">Can Play</button>
+    <button id="almostThere">Almost There</button>
+    <button id="mastered">Mastered</button>
+</div>
+
+
+<!-- Textarea where users can write or edit notes about the song -->
+<textarea id="notesArea" placeholder="Write notes about this song..." rows="10" cols="50"></textarea>
+
+<br>
+<!-- Button to save the notes for the song -->
+<button id="saveBtn">Save</button>
+<!-- Link back to the main song manager page -->
+<a href="index.html">
+    <button>Back To Song Manager</button>
+</a>
+
+<script>
+const statusButtons = ['justStarted', 'knowTheChords', 'canPlay', 'almostThere', 'mastered'];
+const statusLabels = ['Just Started', 'Know The Chords', 'Can Play', 'Almost There', 'Mastered'];
+
+// Get the song ID from the URL parameters
+const params = new URLSearchParams(window.location.search);
+const songId = params.get('songId');
+// Retrieve the list of songs from localStorage, or an empty array if none exist
+const songs = JSON.parse(localStorage.getItem('songs') || '[]');
+// Find the song with the matching ID
+const song = songs.find(s => s.id === songId);
+
+// If the song is found, populate the page with its data
+if (song) {
+    document.getElementById('songTitle').textContent = song.title;
+    document.getElementById('notesArea').value = song.description || '';
+    
+    // Load and display the previously saved status
+    if (song.status) {
+        const statusIndex = statusLabels.indexOf(song.status);
+        if (statusIndex !== -1) {
+            document.getElementById(statusButtons[statusIndex]).classList.add('active');
+        }
+    }
+} else {
+    // If song not found, display an error message
+    document.getElementById('songTitle').textContent = 'Song not found';
+}
+
+// Add event listener to the save button to save the notes
+document.getElementById('saveBtn').addEventListener('click', function() {
+    if (!song) return;
+    // Update the song's description with the textarea value
+    song.description = document.getElementById('notesArea').value;
+    // Get the current list of songs from localStorage
+    const all = JSON.parse(localStorage.getItem('songs') || '[]');
+    // Find the index of the current song in the array
+    const idx = all.findIndex(s => s.id === song.id);
+    if (idx !== -1) {
+        // Replace the song in the array and save back to localStorage
+        all[idx] = song;
+        localStorage.setItem('songs', JSON.stringify(all));
+    }
+});
+
+statusButtons.forEach((buttonId, index) => {
+    document.getElementById(buttonId).addEventListener('click', function() {
+        if (!song) return;
+        song.status = statusLabels[index];
+        statusButtons.forEach(id => document.getElementById(id).classList.remove('active'));
+        this.classList.add('active');
+        updateStatus();
+    });
+});
+
+function updateStatus() {
+    const all = JSON.parse(localStorage.getItem('songs') || '[]');
+    const idx = all.findIndex(s => s.id === song.id);
+    if (idx !== -1) {
+        all[idx] = song;
+        localStorage.setItem('songs', JSON.stringify(all));
+    }
+}
+
+
+</script>
+
+</body>
+</html>
